@@ -1,3 +1,4 @@
 # wallchat
 
-Скоро всё будет, терпение.
+Start project:
+```go run .```
