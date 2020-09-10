@@ -53,13 +53,15 @@ func rootHandler() http.Handler {
 	rtr.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		name := strings.TrimSpace(r.URL.Query().Get("name"))
 		if name == "" {
-			sendFail(w, "name required")
+			w.WriteHeader(http.StatusUnauthorized)
+			io.WriteString(w, "name required")
 			return
 		}
 
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			sendFail(w, "upgrade fail:", err)
+			w.WriteHeader(http.StatusUpgradeRequired)
+			io.WriteString(w, "upgrade failed")
 			return
 		}
 
@@ -98,9 +100,4 @@ func rootHandler() http.Handler {
 	})
 
 	return rtr
-}
-
-func sendFail(w http.ResponseWriter, v ...interface{}) {
-	w.WriteHeader(500)
-	io.WriteString(w, fmt.Sprintln(v...))
 }
