@@ -2,16 +2,14 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"strings"
-	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/tada-team/nane/nane"
+
 	"github.com/gorilla/websocket"
-	"github.com/tada-team/kozma"
 )
 
 var upgrader = websocket.Upgrader{
@@ -20,84 +18,65 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin:     func(r *http.Request) bool { return true }, // XXX
 }
 
-type Session struct {
-	conn *websocket.Conn
-	name string
-}
-
-var connections = make(map[*websocket.Conn]Session)
-
-func init() {
-	go func() {
-		for range time.Tick(60 * time.Second) {
-			broadcast(textMessage(kozma.Name, kozma.Say()))
-		}
-	}()
-}
-
-func broadcast(v interface{}) {
-	for conn := range connections {
+func broadcast(v *nane.Message) {
+	for conn := range sessions {
 		if err := conn.WriteJSON(v); err != nil {
 			log.Println("write json fail:", err)
 		}
 	}
 }
 
-func rootHandler() http.Handler {
-	rtr := mux.NewRouter()
+func wsHandler(w http.ResponseWriter, r *http.Request) error {
+	username := strings.TrimSpace(r.URL.Query().Get("name"))
+	if username == "" {
+		w.WriteHeader(http.StatusUnauthorized)
+		io.WriteString(w, "name required")
+		return nil
+	}
 
-	rtr.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "static/test.html")
-	})
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		w.WriteHeader(http.StatusUpgradeRequired)
+		io.WriteString(w, "upgrade failed")
+		return nil
+	}
 
-	rtr.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		name := strings.TrimSpace(r.URL.Query().Get("name"))
-		if name == "" {
-			w.WriteHeader(http.StatusUnauthorized)
-			io.WriteString(w, "name required")
-			return
-		}
+	session := Session{conn: conn}
+	session.Username = username
+	sessions[conn] = session
+	log.Println("+connection:", len(sessions))
 
-		conn, err := upgrader.Upgrade(w, r, nil)
+	defer func() {
+		delete(sessions, conn)
+		log.Println("-connection:", len(sessions))
+	}()
+
+	for {
+		messageType, msg, err := conn.ReadMessage()
 		if err != nil {
-			w.WriteHeader(http.StatusUpgradeRequired)
-			io.WriteString(w, "upgrade failed")
-			return
+			return err
 		}
 
-		connections[conn] = Session{
-			conn: conn,
-			name: name,
+		switch messageType {
+		case websocket.CloseMessage:
+			return nil
+		case websocket.TextMessage, websocket.BinaryMessage:
+			message := new(nane.Message)
+			if err := json.Unmarshal(msg, &message); err != nil {
+				return err
+			}
+
+			if err := addMessage(session.Sender, message); err != nil {
+				_, ok := err.(contentError)
+				if ok {
+					log.Println("warn:", err)
+					continue
+				}
+				return err
+			}
+
+			broadcast(message)
+			message.Id = ""
 		}
-		log.Println("+connection:", len(connections))
-
-		defer func() {
-			delete(connections, conn)
-			log.Println("-connection:", len(connections))
-			broadcast(systemMessage(fmt.Sprintf("ушёл: %s", name)))
-		}()
-
-		broadcast(systemMessage(fmt.Sprintf("пришёл: %s", name)))
-
-		for {
-			_, msg, err := conn.ReadMessage()
-			if err != nil {
-				log.Println("read fail:", err)
-				return
-			}
-
-			newMessage := new(Message)
-			if err := json.Unmarshal(msg, newMessage); err != nil {
-				log.Println("json fail:", err)
-				return
-			}
-
-			if newMessage.Text != "" {
-				broadcast(textMessage(name, newMessage.Text))
-				broadcast(textMessage(kozma.Name, kozma.Say()))
-			}
-		}
-	})
-
-	return rtr
+	}
 }
