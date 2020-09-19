@@ -19,7 +19,11 @@ func main() {
 	arg.MustParse(&settings)
 	log.Printf("start server at http://%s", settings.Addr)
 
-	log.Println(debugJSON(settings))
+	if settings.Kozma {
+		log.Println("kozma enabled")
+		go startKozma()
+	}
+
 	server := &http.Server{
 		Addr:         settings.Addr,
 		Handler:      rootHandler(),
