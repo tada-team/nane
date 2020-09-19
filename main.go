@@ -15,7 +15,7 @@ var start = time.Now()
 var settings struct {
 	Addr               string `default:"localhost:8022"`
 	MaxMessagesInRoom  int    `default:"1024"`
-	MaxRoomTitleLength int    `default:"20"`
+	MaxRoomTitleLength int    `default:"50"`
 	MaxUsernameLength  int    `default:"50"`
 	MaxMessageLength   int    `default:"10500"`
 }
