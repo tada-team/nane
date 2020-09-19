@@ -9,8 +9,8 @@
 Однако, если очень хочется, можно запустить его локально:
 
 ```bash
-go get -u github.com/tada-team/nane -kozma
-$HOME/go/bin/nane
+go get -u github.com/tada-team/nane
+$HOME/go/bin/nane -kozma
 ```
 
 Аргумент `-kozma=true` включает встроенный тестовый аккаунт «Козьма Прутков», который создаёт себе комнату «kozma» и начинает 
