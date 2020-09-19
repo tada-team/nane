@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -53,11 +54,6 @@ func rootHandler() http.Handler {
 	return rtr
 }
 
-func indexHandler(w http.ResponseWriter, r *http.Request) error {
-	http.ServeFile(w, r, "static/index.html")
-	return nil
-}
-
 func wrap(fn func(w http.ResponseWriter, r *http.Request) error) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println(r.Method, r.URL.Path)
@@ -66,4 +62,19 @@ func wrap(fn func(w http.ResponseWriter, r *http.Request) error) func(w http.Res
 			log.Println("fail:", err)
 		}
 	}
+}
+
+func indexHandler(w http.ResponseWriter, r *http.Request) error {
+	const index = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Ай-нанэ-нанэ!</title>
+</head>
+<body>
+    Docs: <a href="https://github.com/tada-team/nane">https://github.com/tada-team/nane</a>
+</body>
+</html>`
+	io.WriteString(w, index)
+	return nil
 }
