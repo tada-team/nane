@@ -7,9 +7,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/tada-team/nane/nane"
-
 	"github.com/gorilla/websocket"
+	"github.com/tada-team/nane/nane"
 )
 
 var upgrader = websocket.Upgrader{
