@@ -35,12 +35,12 @@ func (e contentError) Error() string {
 }
 
 func addMessage(sender nane.Sender, msg *nane.Message) error {
-	msg.Text = truncateString(strings.TrimSpace(msg.Text), settings.MaxMessageLength)
+	msg.Text = truncateString(strings.TrimSpace(msg.Text), settings.GetMaxMessageLength())
 	if msg.Text == "" {
 		return contentError("text required")
 	}
 
-	msg.Room = truncateString(strings.TrimSpace(msg.Room), settings.MaxRoomTitleLength)
+	msg.Room = truncateString(strings.TrimSpace(msg.Room), settings.GetMaxRoomTitleLength())
 	if msg.Room == "" {
 		return contentError("room required")
 	}
@@ -53,7 +53,6 @@ func addMessage(sender nane.Sender, msg *nane.Message) error {
 	msg.Room = room.Name
 	msg.Created = time.Now()
 	msg.Sender = sender
-	msg.Text = truncateString(msg.Text, settings.MaxMessageLength)
 
 	room.LastMessage = msg
 	room.messages.Value = *msg
@@ -95,7 +94,7 @@ func getOrCreateRoom(name string) *Room {
 	if room == nil {
 		room = &Room{
 			Room:     nane.Room{Name: name},
-			messages: ring.New(settings.MaxMessagesInRoom),
+			messages: ring.New(settings.GetMaxMessagesInRoom()),
 			mux:      new(sync.Mutex),
 		}
 		rooms[strings.ToLower(name)] = room

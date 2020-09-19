@@ -14,9 +14,9 @@ import (
 func settingsHandler(w http.ResponseWriter, r *http.Request) error {
 	return jsonResponse(w, nane.ApiResponse{
 		Result: nane.Settings{
-			MaxMessageLength:   settings.MaxMessageLength,
-			MaxRoomTitleLength: settings.MaxRoomTitleLength,
-			MaxUsernameLength:  settings.MaxUsernameLength,
+			MaxMessageLength:   settings.GetMaxMessageLength(),
+			MaxRoomTitleLength: settings.GetMaxRoomTitleLength(),
+			MaxUsernameLength:  settings.GetMaxUsernameLength(),
 			Uptime:             time.Since(start),
 		},
 	})

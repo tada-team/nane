@@ -10,20 +10,16 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var start = time.Now()
-
-var settings struct {
-	Addr               string `default:"localhost:8022"`
-	MaxMessagesInRoom  int    `default:"1024"`
-	MaxRoomTitleLength int    `default:"50"`
-	MaxUsernameLength  int    `default:"50"`
-	MaxMessageLength   int    `default:"10500"`
-}
+var (
+	start    = time.Now()
+	settings globalSettings
+)
 
 func main() {
 	arg.MustParse(&settings)
 	log.Printf("start server at http://%s", settings.Addr)
 
+	log.Println(debugJSON(settings))
 	server := &http.Server{
 		Addr:         settings.Addr,
 		Handler:      rootHandler(),
