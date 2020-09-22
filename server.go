@@ -26,7 +26,11 @@ func broadcast(v *nane.Message) {
 }
 
 func wsHandler(w http.ResponseWriter, r *http.Request) error {
-	username := strings.TrimSpace(r.URL.Query().Get("name"))
+	username := strings.TrimSpace(r.URL.Query().Get("username"))
+	if username == "" {
+		username = strings.TrimSpace(r.URL.Query().Get("name")) // backward compatibility
+	}
+
 	if username == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		io.WriteString(w, "name required")
