@@ -36,7 +36,7 @@ $HOME/go/bin/nane -kozma
 
 Соединение: `wss://nane.tada.team/ws?username={username}`
 
-По ws отправляются сообщения формата:
+Клиент отправляет сообщения формата:
 
 ```text
 {
@@ -46,7 +46,7 @@ $HOME/go/bin/nane -kozma
 }
 ```
 
-По ws приходят сообщения формата:
+Сервер отправляет сообщения формата:
 ```text
 {
   "room": string,
