@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/alexflint/go-arg v1.3.0
+	github.com/getsentry/sentry-go v0.7.0
 	github.com/gorilla/mux v1.7.4
 	github.com/gorilla/websocket v1.4.2
 	github.com/pkg/errors v0.9.1

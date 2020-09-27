@@ -1,8 +1,9 @@
 package main
 
 type globalSettings struct {
-	Addr  string `default:"localhost:8022"`
-	Kozma bool
+	Addr      string `default:"localhost:8022"`
+	Kozma     bool
+	SentryDsn string
 	// "default" doesnt work with tests
 	MaxMessagesInRoom  int
 	MaxRoomTitleLength int

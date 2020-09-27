@@ -5,6 +5,8 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/getsentry/sentry-go"
+
 	"github.com/tada-team/kozma"
 	"github.com/tada-team/nane/nane"
 )
@@ -18,6 +20,7 @@ func startKozma() {
 			Text: kozma.Say(),
 		})
 		if err != nil {
+			sentry.CaptureException(err)
 			log.Panicln("kozma fail:", err)
 		}
 		time.Sleep(time.Duration(rand.Intn(60)) * time.Second)

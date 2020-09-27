@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/alexflint/go-arg"
+	"github.com/getsentry/sentry-go"
 	"github.com/gorilla/mux"
 )
 
@@ -18,6 +19,15 @@ var (
 func main() {
 	arg.MustParse(&settings)
 	log.Printf("start server at http://%s", settings.Addr)
+
+	if settings.SentryDsn != "" {
+		err := sentry.Init(sentry.ClientOptions{
+			Dsn: settings.SentryDsn,
+		})
+		if err != nil {
+			log.Panicln("sentry fail:", err)
+		}
+	}
 
 	if settings.Kozma {
 		log.Println("kozma enabled")
@@ -32,6 +42,7 @@ func main() {
 	}
 
 	if err := server.ListenAndServe(); err != nil {
+		sentry.CaptureException(err)
 		log.Panicln("listen fail:", err)
 	}
 }
@@ -59,6 +70,7 @@ func wrap(fn func(w http.ResponseWriter, r *http.Request) error) func(w http.Res
 		log.Println(r.Method, r.URL.Path)
 		err := fn(w, r)
 		if err != nil {
+			sentry.CaptureException(err)
 			log.Println("fail:", err)
 		}
 	}
