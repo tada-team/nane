@@ -82,9 +82,54 @@ func indexHandler(w http.ResponseWriter, r *http.Request) error {
 <head>
     <meta charset="UTF-8">
     <title>Ай-нанэ-нанэ!</title>
+	<style>
+	body { font-family: sans-serif; }
+	b { display: block; }
+	</style>
 </head>
 <body>
-    Docs: <a href="https://github.com/tada-team/nane">https://github.com/tada-team/nane</a>
+	<h2>Документация</h2>
+ 	<a href="https://github.com/tada-team/nane">https://github.com/tada-team/nane</a>	
+	<h2>Проверка связи</h2>
+	<div id="messages"></div>
+	<script>
+	let box = document.getElementById("messages");
+
+	function connect() {
+		let url = location.origin.replace(/^http/, "ws") + "/ws?name=Anonymous";
+		let ws = new WebSocket(url);
+		
+		ws.addEventListener("open", function (event) {
+			let body = document.createElement("p");
+			body.appendChild(document.createTextNode("[есть контакт]"));
+			box.appendChild(body);
+		});
+	
+		ws.addEventListener("close", function (event) {
+			let body = document.createElement("p");
+			body.appendChild(document.createTextNode("[переподключение]"));
+			box.appendChild(body);
+			window.setTimeout(connect, 3000);
+		});
+	
+		ws.addEventListener("message", function (event) {
+			let msg = JSON.parse(event.data);
+			
+			let title = document.createElement("b");
+			title.append(document.createTextNode(msg.sender.username));
+			title.append(document.createTextNode(" @ "));
+			title.append(document.createTextNode(msg.room));
+	
+			let body = document.createElement("p");
+			body.appendChild(title);
+			body.appendChild(document.createTextNode(msg.text));
+			box.appendChild(body);
+		});
+	}
+
+	connect();
+
+	</script>
 </body>
 </html>`
 	io.WriteString(w, index)
