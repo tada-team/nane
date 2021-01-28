@@ -28,32 +28,39 @@ func TestRootHandler(t *testing.T) {
 	}
 	defer ws.Close()
 
-	message := nane.Message{
-		Room: "testRoom",
-		Text: "333",
-	}
-	if err := ws.WriteJSON(message); err != nil {
-		t.Fatalf("could not send message over ws connection %v", err)
-	}
-
-	//time.Sleep(time.Second) // XXX:
-
-	v := new(struct {
-		Result nane.Room `json:"result"`
-		Error  string    `json:"error"`
+	t.Run("invalid message", func(t *testing.T) {
+		message := map[string]string{"xx": "123"}
+		if err := ws.WriteJSON(message); err != nil {
+			t.Fatalf("could not send message over ws connection %v", err)
+		}
 	})
 
-	if err := doGet(ts.URL+"/api/rooms/"+message.Room, v); err != nil {
-		t.Fatal(err)
-	}
+	t.Run("send message", func(t *testing.T) {
+		message := nane.Message{
+			Room: "testRoom",
+			Text: "333",
+		}
+		if err := ws.WriteJSON(message); err != nil {
+			t.Fatalf("could not send message over ws connection %v", err)
+		}
 
-	if v.Error != "" {
-		t.Fatal(v.Error)
-	}
+		v := new(struct {
+			Result nane.Room `json:"result"`
+			Error  string    `json:"error"`
+		})
 
-	if v.Result.LastMessage == nil || v.Result.LastMessage.Text != message.Text {
-		t.Error("invalid last message:", debugJSON(v))
-	}
+		if err := doGet(ts.URL+"/api/rooms/"+message.Room, v); err != nil {
+			t.Fatal(err)
+		}
+
+		if v.Error != "" {
+			t.Fatal(v.Error)
+		}
+
+		if v.Result.LastMessage == nil || v.Result.LastMessage.Text != message.Text {
+			t.Error("invalid last message:", debugJSON(v))
+		}
+	})
 }
 
 func doGet(path string, v interface{}) error {
