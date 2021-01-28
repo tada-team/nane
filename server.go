@@ -64,11 +64,25 @@ func wsHandler(w http.ResponseWriter, r *http.Request) error {
 		case websocket.CloseMessage:
 			return nil
 		case websocket.TextMessage, websocket.BinaryMessage:
+			ping := new(nane.Ping)
+			if err := json.Unmarshal(msg, &ping); err != nil {
+				return err
+			}
+
+			if ping.Ping {
+				log.Println("got ping from", username)
+				if err := conn.WriteJSON(nane.Pong{Pong: true}); err != nil {
+					return err
+				}
+				continue
+			}
+
 			message := new(nane.Message)
 			if err := json.Unmarshal(msg, &message); err != nil {
 				return err
 			}
 
+			log.Println("got message from", username, strings.TrimSpace(string(msg)))
 			if err := addMessage(session.Sender, message); err != nil {
 				_, ok := err.(contentError)
 				if ok {

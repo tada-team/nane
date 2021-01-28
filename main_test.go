@@ -28,6 +28,23 @@ func TestRootHandler(t *testing.T) {
 	}
 	defer ws.Close()
 
+	t.Run("ping-pong", func(t *testing.T) {
+		if err := ws.WriteJSON(nane.Ping{Ping: true}); err != nil {
+			t.Fatalf("could not send message over ws connection %v", err)
+		}
+		_, msg, err := ws.ReadMessage()
+		if err != nil {
+			t.Fatal(err)
+		}
+		pong := new(nane.Pong)
+		if err := json.Unmarshal(msg, &pong); err != nil {
+			t.Fatal(err)
+		}
+		if !pong.Pong {
+			t.Fatal("invalid pong")
+		}
+	})
+
 	t.Run("invalid message", func(t *testing.T) {
 		message := map[string]string{"xx": "123"}
 		if err := ws.WriteJSON(message); err != nil {

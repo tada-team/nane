@@ -32,3 +32,11 @@ type ApiResponse struct {
 	Result interface{} `json:"result,omitempty"`
 	Error  string      `json:"error,omitempty"`
 }
+
+type Pong struct {
+	Pong bool `json:"pong"`
+}
+
+type Ping struct {
+	Ping bool `json:"ping"`
+}
