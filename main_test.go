@@ -53,34 +53,59 @@ func TestRootHandler(t *testing.T) {
 		}
 	})
 
-	t.Run("send message", func(t *testing.T) {
-		message := nane.Message{
-			Room: "44 %88 & me / 55",
-			Text: "olo 0-0-8",
-		}
-		if err := ws.WriteJSON(message); err != nil {
-			t.Fatalf("could not send message over ws connection %v", err)
-		}
+	for _, roomName := range []string{
+		"room",
+		"44 %88 & me / 55",
+		//"44 %88 & me / 55/history", // fixme
+	} {
+		t.Run("send message to " + roomName, func(t *testing.T) {
+			message := nane.Message{
+				Room: roomName,
+				Text: "olo 0-0-8",
+			}
+			if err := ws.WriteJSON(message); err != nil {
+				t.Fatalf("could not send message over ws connection %v", err)
+			}
 
-		t.Run("get history", func(t *testing.T) {
-			v := new(struct {
-				Result nane.Room `json:"result"`
-				Error  string    `json:"error"`
+			t.Run("room info", func(t *testing.T) {
+				v := new(struct {
+					Result nane.Room `json:"result"`
+					Error  string    `json:"error"`
+				})
+
+				if err := doGet(ts.URL+"/api/rooms/"+url.PathEscape(message.Room), v); err != nil {
+					t.Fatal(err)
+				}
+
+				if v.Error != "" {
+					t.Fatal(v.Error)
+				}
+
+				if v.Result.LastMessage == nil || v.Result.LastMessage.Text != message.Text {
+					t.Error("invalid last message:", debugJSON(v))
+				}
 			})
 
-			if err := doGet(ts.URL+"/api/rooms/"+ url.PathEscape(message.Room), v); err != nil {
-				t.Fatal(err)
-			}
+			t.Run("room history", func(t *testing.T) {
+				v := new(struct {
+					Result []nane.Message `json:"result"`
+					Error  string         `json:"error"`
+				})
 
-			if v.Error != "" {
-				t.Fatal(v.Error)
-			}
+				if err := doGet(ts.URL+"/api/rooms/"+url.PathEscape(message.Room)+"/history", v); err != nil {
+					t.Fatal(err)
+				}
 
-			if v.Result.LastMessage == nil || v.Result.LastMessage.Text != message.Text {
-				t.Error("invalid last message:", debugJSON(v))
-			}
+				if v.Error != "" {
+					t.Fatal(v.Error)
+				}
+
+				if len(v.Result) != 1 {
+					t.Error("invalid history:", debugJSON(v))
+				}
+			})
 		})
-	})
+	}
 }
 
 func doGet(path string, v interface{}) error {
