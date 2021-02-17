@@ -1,5 +1,4 @@
 ![build](https://github.com/tada-team/nane/workflows/build/badge.svg)
-[![codecov](https://codecov.io/gh/tada-team/nane/branch/main/graph/badge.svg)](https://codecov.io/gh/tada-team/nane)
 # Ай-нане-нане
 
 Тот самый цыганский сервер для тестового задания.
