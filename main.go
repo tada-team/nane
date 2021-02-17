@@ -57,8 +57,8 @@ func rootHandler() http.Handler {
 		{"/ws", wsHandler},
 		{"/api/settings", settingsHandler},
 		{"/api/rooms", roomsHandler},
-		{"/api/rooms/{name}", roomHandler},
-		{"/api/rooms/{name}/history", historyHandler},
+		{"/api/rooms/{name:.+}", roomHandler},
+		{"/api/rooms/{name:.+}/history", historyHandler},
 	} {
 		rtr.HandleFunc(item.path, wrap(item.fn))
 	}
