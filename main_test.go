@@ -56,6 +56,7 @@ func TestRootHandler(t *testing.T) {
 	for _, roomName := range []string{
 		"room",
 		"44 %88 & me / 55",
+		//"////", // fixme
 		//"44 %88 & me / 55/history", // fixme
 	} {
 		t.Run("send message to " + roomName, func(t *testing.T) {
