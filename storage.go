@@ -23,10 +23,18 @@ type Room struct {
 }
 
 var (
+	roomsMap map[string]*Room
+	roomsMux sync.Mutex
 	sessions = make(map[*websocket.Conn]Session)
-	rooms    = make(map[string]*Room)
-	roomsMux = new(sync.Mutex)
 )
+
+func reset() {
+	roomsMap = make(map[string]*Room)
+}
+
+func init() {
+	reset()
+}
 
 type contentError string
 
@@ -62,7 +70,7 @@ func addMessage(sender nane.Sender, msg *nane.Message) error {
 }
 
 func (room *Room) getMessages() []nane.Message {
-	result := make([]nane.Message, 0)
+	var result []nane.Message
 	room.messages.Do(func(i interface{}) {
 		if i != nil {
 			result = append(result, i.(nane.Message))
@@ -75,15 +83,15 @@ func (room *Room) getMessages() []nane.Message {
 }
 
 func getRooms() []nane.Room {
-	result := make([]nane.Room, 0, len(rooms))
-	for _, room := range rooms {
+	result := make([]nane.Room, 0, len(roomsMap))
+	for _, room := range roomsMap {
 		result = append(result, room.Room)
 	}
 	return result
 }
 
 func getRoom(name string) *Room {
-	return rooms[strings.ToLower(name)]
+	return roomsMap[normalizeRoomName(name)]
 }
 
 func getOrCreateRoom(name string) *Room {
@@ -97,16 +105,8 @@ func getOrCreateRoom(name string) *Room {
 			messages: ring.New(settings.GetMaxMessagesInRoom()),
 			mux:      new(sync.Mutex),
 		}
-		rooms[strings.ToLower(name)] = room
+		roomsMap[normalizeRoomName(name)] = room
 	}
 
 	return room
-}
-
-func truncateString(s string, maxLength int) string {
-	r := []rune(s)
-	if len(r) <= maxLength {
-		return s
-	}
-	return string(r[:maxLength])
 }

@@ -82,7 +82,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) error {
 				return err
 			}
 
-			log.Println("got message from", username, strings.TrimSpace(string(msg)))
+			log.Println("got message", strings.TrimSpace(string(msg)))
 			if err := addMessage(session.Sender, message); err != nil {
 				_, ok := err.(contentError)
 				if ok {

@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
@@ -15,13 +16,16 @@ import (
 )
 
 func TestRootHandler(t *testing.T) {
+	reset()
+
 	srv := http.NewServeMux()
 	srv.Handle("/", rootHandler())
 
 	ts := httptest.NewServer(srv)
 	defer ts.Close()
 
-	wsURL := "ws" + strings.TrimPrefix(ts.URL, "http") + "/ws?name=tester"
+	username := "tester #1"
+	wsURL := "ws" + strings.TrimPrefix(ts.URL, "http") + "/ws?name=" + url.QueryEscape(username)
 
 	ws, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
 	if err != nil {
@@ -54,55 +58,67 @@ func TestRootHandler(t *testing.T) {
 	})
 
 	for _, roomName := range []string{
-		"room",
+		"room #1",
+		"another room",
 		"44 %88 & me / 55",
 		//"////", // fixme
 		//"44 %88 & me / 55/history", // fixme
 	} {
-		t.Run("send message to " + roomName, func(t *testing.T) {
+		t.Run("message to " + roomName, func(t *testing.T) {
 			message := nane.Message{
 				Room: roomName,
-				Text: "olo 0-0-8",
+				Text: "message to " + roomName,
 			}
+
 			if err := ws.WriteJSON(message); err != nil {
 				t.Fatalf("could not send message over ws connection %v", err)
 			}
 
-			t.Run("room info", func(t *testing.T) {
-				v := new(struct {
+			time.Sleep(25*time.Millisecond) // XXX
+
+			t.Run("info", func(t *testing.T) {
+				resp := new(struct {
 					Result nane.Room `json:"result"`
 					Error  string    `json:"error"`
 				})
 
-				if err := doGet(ts.URL+"/api/rooms/"+url.PathEscape(message.Room), v); err != nil {
+				if err := doGet(ts.URL+"/api/rooms/"+url.PathEscape(roomName), resp); err != nil {
 					t.Fatal(err)
 				}
 
-				if v.Error != "" {
-					t.Fatal(v.Error)
+				if resp.Error != "" {
+					t.Fatal(resp.Error)
 				}
 
-				if v.Result.LastMessage == nil || v.Result.LastMessage.Text != message.Text {
-					t.Error("invalid last message:", debugJSON(v))
+				if resp.Result.Name != roomName {
+					t.Error("invalid room name:", resp.Result.Name, "want:", roomName)
+				}
+
+				if resp.Result.LastMessage == nil || resp.Result.LastMessage.Text != message.Text || resp.Result.LastMessage.Sender.Username != username {
+					t.Error("invalid last message:", debugJSON(resp))
 				}
 			})
 
-			t.Run("room history", func(t *testing.T) {
-				v := new(struct {
+			t.Run("history", func(t *testing.T) {
+				resp := new(struct {
 					Result []nane.Message `json:"result"`
 					Error  string         `json:"error"`
 				})
 
-				if err := doGet(ts.URL+"/api/rooms/"+url.PathEscape(message.Room)+"/history", v); err != nil {
+				if err := doGet(ts.URL+"/api/rooms/"+url.PathEscape(roomName)+"/history", resp); err != nil {
 					t.Fatal(err)
 				}
 
-				if v.Error != "" {
-					t.Fatal(v.Error)
+				if resp.Error != "" {
+					t.Fatal(resp.Error)
 				}
 
-				if len(v.Result) != 1 {
-					t.Error("invalid history:", debugJSON(v))
+				if len(resp.Result) != 1 {
+					t.Error("invalid history: want 1 message, got:", debugJSON(resp))
+				}
+
+				if resp.Result[0].Sender.Username != username {
+					t.Error("invalid sender username:", resp.Result[0].Sender.Username, "want:", username)
 				}
 			})
 		})

@@ -68,8 +68,7 @@ func rootHandler() http.Handler {
 func wrap(fn func(w http.ResponseWriter, r *http.Request) error) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println(r.Method, r.URL.Path)
-		err := fn(w, r)
-		if err != nil {
+		if err := fn(w, r); err != nil {
 			sentry.CaptureException(err)
 			log.Println("fail:", err)
 		}
