@@ -51,8 +51,8 @@ $HOME/go/bin/nane -kozma
 ```text
 {
   "room": string,
-  "text": string,
-  "id": string,
+  "text": string, 
+  "id": string, // если передан клиентом при отправке. Сам сервер этот id не назначает и не использует
   "created": iso_datetime, // время создания сообщения 
   "sender": {"username": string} // информация об отправителе  
 }
