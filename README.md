@@ -35,7 +35,7 @@ $HOME/go/bin/nane -kozma
 
 ## Веб-сокеты
 
-Соединение: `wss://nane.tada.team/ws?username={username}`
+Соединение: `wss://nane.tada.team/ws?name={username}`
 
 Клиент отправляет сообщения формата:
 
