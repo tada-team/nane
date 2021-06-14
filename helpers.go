@@ -13,8 +13,7 @@ func debugJSON(v interface{}) string {
 	debugEncoder := json.NewEncoder(b)
 	debugEncoder.SetIndent("", "    ")
 	debugEncoder.SetEscapeHTML(false)
-	err := debugEncoder.Encode(v)
-	if err != nil {
+	if err := debugEncoder.Encode(v); err != nil {
 		log.Panicln(errors.Wrap(err, "json marshall fail"))
 	}
 	return b.String()

@@ -12,6 +12,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
+
 	"github.com/tada-team/nane/nane"
 )
 
@@ -64,7 +65,7 @@ func TestRootHandler(t *testing.T) {
 		//"////", // fixme
 		//"44 %88 & me / 55/history", // fixme
 	} {
-		t.Run("message to " + roomName, func(t *testing.T) {
+		t.Run("message to "+roomName, func(t *testing.T) {
 			message := nane.Message{
 				Room: roomName,
 				Text: "message to " + roomName,
@@ -74,7 +75,7 @@ func TestRootHandler(t *testing.T) {
 				t.Fatalf("could not send message over ws connection %v", err)
 			}
 
-			time.Sleep(25*time.Millisecond) // XXX
+			time.Sleep(25 * time.Millisecond) // XXX
 
 			t.Run("info", func(t *testing.T) {
 				resp := new(struct {

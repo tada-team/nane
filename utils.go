@@ -2,7 +2,7 @@ package main
 
 import "strings"
 
-func normalizeRoomName(s string) string  {
+func normalizeRoomName(s string) string {
 	return strings.ToLower(s)
 }
 
@@ -13,4 +13,3 @@ func truncateString(s string, maxLength int) string {
 	}
 	return string(r[:maxLength])
 }
-

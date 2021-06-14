@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/websocket"
+
 	"github.com/tada-team/nane/nane"
 )
 
@@ -33,14 +34,14 @@ func wsHandler(w http.ResponseWriter, r *http.Request) error {
 
 	if username == "" {
 		w.WriteHeader(http.StatusUnauthorized)
-		io.WriteString(w, "name required")
+		_, _ = io.WriteString(w, "name required")
 		return nil
 	}
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		w.WriteHeader(http.StatusUpgradeRequired)
-		io.WriteString(w, "upgrade failed")
+		_, _ = io.WriteString(w, "upgrade failed")
 		return nil
 	}
 
