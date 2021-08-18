@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 
@@ -19,10 +20,18 @@ import (
 func TestRootHandler(t *testing.T) {
 	reset()
 
-	srv := http.NewServeMux()
-	srv.Handle("/", rootHandler())
+	//srv := http.NewServeMux()
+	//srv.Handle("/", rootHandler())
 
-	ts := httptest.NewServer(srv)
+	//ts := httptest.NewServer(srv)
+
+	rh := rootHandler()
+	rtr, ok := rh.(*mux.Router)
+	if !ok {
+		t.Fatal("Can't cast http.Handler to *mux.Router")
+	}
+	rtr.SkipClean(true)
+	ts := httptest.NewServer(rtr)
 	defer ts.Close()
 
 	username := "tester #1"
@@ -62,7 +71,7 @@ func TestRootHandler(t *testing.T) {
 		"room #1",
 		"another room",
 		"44 %88 & me / 55",
-		//"////", // fixme
+		"////", // fixme
 		//"44 %88 & me / 55/history", // fixme
 	} {
 		t.Run("message to "+roomName, func(t *testing.T) {
